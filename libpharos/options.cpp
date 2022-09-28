@@ -208,6 +208,8 @@ ProgOptDesc cert_standard_options() {
      "do not mark the entry point segment as executable")
     ("mark-executable",
      "mark all segments as executable during partitioning")
+    ("no-compression",
+     "do not compress the serialization database")
     ("log",
      po::value<std::string>(),
      "log facility control string")

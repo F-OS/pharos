@@ -302,8 +302,12 @@ P2::Partitioner create_partitioner(const ProgOptVarMap& vm, P2::Engine* engine,
           GFATAL << "Could not open " << path << " for reading." << LEND;
           std::exit(EXIT_FAILURE);
         }
+
         bio::filtering_streambuf<bio::input> in;
-        in.push(bio::gzip_decompressor());
+	if(!vm.count("no-compression"))
+	{
+		in.push(bio::gzip_decompressor());
+	}
         in.push(file);
         bar::binary_iarchive ia(in);
         std::string version;
@@ -333,6 +337,7 @@ P2::Partitioner create_partitioner(const ProgOptVarMap& vm, P2::Engine* engine,
         OINFO << "Reading serialized data took " << secs.count() << " seconds." << LEND;
       } catch (boost::iostreams::gzip_error &e) {
         OFATAL << "Unable to read serialized data: " << e.what () << LEND;
+        OFATAL << "This file may have been created with the --no-compression command-line option." << LEND;
         std::exit(EXIT_FAILURE);
       }
     } else {
@@ -354,7 +359,14 @@ P2::Partitioner create_partitioner(const ProgOptVarMap& vm, P2::Engine* engine,
           OINFO << "Function partitioning took " << secs.count() << " seconds." << LEND;
           OINFO << "Writing serialized data to " << path << "." << LEND;
           bio::filtering_streambuf<bio::output> out;
-          out.push(bio::gzip_compressor());
+          if(vm.count("no-compression"))
+          {
+              OINFO << "Skipping compression of serialized data." << LEND;
+          }
+          else
+          {
+              out.push(bio::gzip_compressor());
+          }
           out.push(file);
           bar::binary_oarchive oa(out);
           oa << std::string{ROSE_PACKAGE_VERSION} << disable_semantics;
